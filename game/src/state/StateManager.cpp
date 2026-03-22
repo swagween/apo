@@ -10,6 +10,7 @@ StateManager::StateManager(ResourceManager& res, EventRegistry& events) {
 
 	// event subscriptions
 	events.launch_file.attach_to(p_slot, [this, &res]() { m_current_state = std::make_unique<Shop>(res); });
+	events.return_to_title_menu.attach_to(p_slot, [this, &res]() { m_current_state = std::make_unique<TitleMenu>(res); });
 }
 
 void StateManager::tick(InputSystem& input, EventRegistry& events) { m_current_state->tick(input, events); }

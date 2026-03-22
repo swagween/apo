@@ -18,7 +18,7 @@ Application::Application() : m_game{m_resources, m_input_system, m_events, m_dat
 		while (std::optional const event = m_window.pollEvent()) {
 			if (event->is<sf::Event::Closed>()) { m_window.close(); }
 			if (auto const* key_pressed = event->getIf<sf::Event::KeyPressed>()) {
-				if (key_pressed->scancode == sf::Keyboard::Scancode::Escape) { shutdown(); }
+				if (key_pressed->scancode == sf::Keyboard::Scancode::Escape) { m_events.return_to_title_menu.dispatch(); }
 			}
 
 			// mouse buttons
