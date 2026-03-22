@@ -1,0 +1,9 @@
+apo_add_sources(
+  AppData.hpp
+    Application.hpp
+    Common.hpp
+    Game.hpp
+    ResourceFinder.hpp
+    ResourceManager.hpp
+    TextureCatalog.hpp
+)

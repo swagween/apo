@@ -1,0 +1,9 @@
+apo_add_headers(
+  BitFlags.hpp
+  Circuit.hpp
+  Cooldown.hpp
+  ExecutablePath.hpp
+  Flaggable.hpp
+  Polymorphic.hpp
+  Random.hpp
+)

@@ -1,0 +1,7 @@
+add_subdirectory(core)
+add_subdirectory(events)
+add_subdirectory(input)
+add_subdirectory(graphics)
+add_subdirectory(gui)
+add_subdirectory(scene)
+add_subdirectory(state)

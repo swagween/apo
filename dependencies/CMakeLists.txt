@@ -1,0 +1,140 @@
+project(apo-dependencies)
+
+include(FetchContent)
+set(BUILD_SHARED_LIBS OFF)
+
+# SFML
+FetchContent_Declare(sfml
+        GIT_REPOSITORY https://github.com/SFML/SFML
+        GIT_TAG 3.0.0
+)
+FetchContent_MakeAvailable(sfml)
+
+# Dear ImGui
+add_subdirectory(imgui)
+
+# Dear ImGui-SFML
+set(IMGUI_SFML_FIND_SFML OFF)
+add_subdirectory(imgui-sfml)
+
+# juke
+FetchContent_Declare(
+        juke
+        GIT_REPOSITORY https://github.com/swagween/jukebox
+        # GIT_TAG v1.0.0
+        GIT_TAG 95c8b702aa02b1c5147e0999d2d49020abeecf9f
+)
+FetchContent_MakeAvailable(juke)
+
+# djson
+FetchContent_Declare(
+        djson
+        GIT_REPOSITORY https://github.com/karnkaul/djson
+        GIT_TAG v3.1.5
+)
+FetchContent_MakeAvailable(djson)
+
+# ksignal
+FetchContent_Declare(
+        ksignal
+        GIT_REPOSITORY https://github.com/karnkaul/ksignal
+        GIT_TAG v0.1.1
+)
+FetchContent_MakeAvailable(ksignal)
+
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24+
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
+# Replace the old steamworks_archive with a new fetch from your GitHub release:
+FetchContent_Declare(
+        steamworks_sdk
+        URL https://github.com/swagween/fornani/releases/download/Steamworks_v1.61.0/SteamworksSDK-v1.61.0_x64.zip
+)
+FetchContent_MakeAvailable(steamworks_sdk)
+
+# Create an INTERFACE library to hold include paths & linking info
+add_library(steamworks INTERFACE)
+target_include_directories(steamworks SYSTEM INTERFACE
+        $<BUILD_INTERFACE:${steamworks_sdk_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+# On Windows, link the 64-bit library & define _CRT_SECURE_NO_WARNINGS
+if(WIN32)
+    target_link_libraries(steamworks INTERFACE
+            "${steamworks_sdk_SOURCE_DIR}/lib/steam/steam_api64.lib"
+    )
+    target_compile_definitions(steamworks INTERFACE _CRT_SECURE_NO_WARNINGS)
+
+    # Keep track of the DLL location in case you want to copy it next to your exe
+    set(STEAMWORKS_DYNLIB_FILE
+            "${steamworks_sdk_SOURCE_DIR}/bin/steam/steam_api64.dll"
+            CACHE STRING "Steamworks DLL location"
+    )
+    set(STEAMWORKS_DYNLIB_FILE_NAME
+            "steam_api64.dll"
+            CACHE STRING "Steamworks DLL nam"
+    )
+elseif(APPLE)
+    # On Unix like systems, link the .so
+    target_link_libraries(steamworks INTERFACE
+            "${steamworks_sdk_SOURCE_DIR}/lib/steam/libsteam_api.dylib"
+    )
+    set(STEAMWORKS_DYNLIB_FILE
+            "${steamworks_sdk_SOURCE_DIR}/lib/steam/libsteam_api.dylib"
+            CACHE STRING "Steamworks DLL location"
+    )
+    set(STEAMWORKS_DYNLIB_FILE_NAME
+            "libsteam_api.dylib"
+            CACHE STRING "Steamworks DLL nam"
+    )
+elseif(UNIX)
+    # On Unix like systems, link the .so
+    target_link_libraries(steamworks INTERFACE
+            "${steamworks_sdk_SOURCE_DIR}/bin/steam/libsteam_api.so"
+    )
+endif()
+
+# (Optional) Provide a function to copy the Steamworks DLL next to an .exe
+# Call this from your main project once you know the name of your executable.
+function(copy_steamworks_dll target)
+    if(WIN32 OR APPLE)
+        add_custom_command(
+                TARGET ${target}
+                COMMENT "Copying Steamworks DLL next to ${target}"
+                PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${STEAMWORKS_DYNLIB_FILE} $<TARGET_FILE_DIR:${target}>/${STEAMWORKS_DYNLIB_FILE_NAME}
+                VERBATIM
+        )
+    endif()
+endfunction()
+
+add_library(apo-dependencies INTERFACE)
+add_library(apo::deps ALIAS apo-dependencies)
+
+target_link_libraries(apo-dependencies INTERFACE
+        djson::djson
+        ksignal::ksignal
+        ImGui-SFML::ImGui-SFML
+        SFML::System
+        SFML::Graphics
+        SFML::Window
+        juke::juke
+        steamworks
+)
+
+if (WIN32 AND NOT APO_PRODUCTION_BUILD AND NOT DEFINED APO_DISABLE_DBGHELP)
+    target_link_libraries(apo-dependencies INTERFACE
+            Dbghelp
+    )
+endif ()
+
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang|IntelLLVM|AppleClang")
+    if ("${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC") # clang-cl
+        add_compile_options(apo-dependencies INTERFACE /W0)
+    endif ()
+    add_compile_options(apo-dependencies INTERFACE -w)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    add_compile_options(apo-dependencies INTERFACE /W0)
+endif ()
