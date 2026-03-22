@@ -1,0 +1,56 @@
+{
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "default",
+			"hidden": true,
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/out/${presetName}",
+			"architecture": {
+				"value": "x64",
+				"strategy": "external"
+			}
+		},
+		{
+			"name": "Debug",
+			"inherits": "default",
+			"description": "Debug build with full symbols",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_POLICY_VERSION_MINIMUM": "3.5"
+			}
+		},
+		{
+			"name": "RelWithDebInfo",
+			"inherits": "default",
+			"description": "Optimized build with debug info",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
+				"CMAKE_POLICY_VERSION_MINIMUM": "3.5"
+			}
+		},
+		{
+			"name": "Release",
+			"inherits": "default",
+			"description": "Optimized release build",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+				"CMAKE_POLICY_VERSION_MINIMUM": "3.5"
+			}
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "Debug",
+			"configurePreset": "Debug"
+		},
+		{
+			"name": "RelWithDebInfo",
+			"configurePreset": "RelWithDebInfo"
+		},
+		{
+			"name": "Release",
+			"configurePreset": "Release"
+		}
+	]
+}
